@@ -98,10 +98,10 @@ mixin Parameters(params)
                             code= self.urldec(value.value)
                             = ' '
 
-mixin Constraints(name, schema)
+mixin Constraints(name, description)
     each constraint in ['minLength', 'maxLength', 'pattern']
-        if schema.properties[name][constraint]
-            div #{constraint}: #{schema.properties[name][constraint]}
+        if description[constraint]
+            div #{constraint}: #{description[constraint]}
 
 
 mixin RequestResponse(title, request, collapse, showSchema)
@@ -147,13 +147,7 @@ mixin RequestResponseBody(request, collapse, showBlank, showSchema)
                             th Description
                             th Constraints
                             each description, name in schema.properties || []
-                                tr
-                                    td #{name}
-                                    td #{description.type}
-                                    td #{schema.required && schema.required.indexOf(name) >= 0 ? 'true' : ''}
-                                    td #{description.description}
-                                    td
-                                        +Constraints(name, schema)
+                                +AttributesTable(schema, name, description, '')
                 div.title
                     .collapse-button
                         span.close Hide
@@ -166,6 +160,18 @@ mixin RequestResponseBody(request, collapse, showBlank, showSchema)
             if !request.hasContent
                 .description.text-muted This response has no content.
                 div(style="height: 1px;")
+
+mixin AttributesTable(schema, name, description, indentation)
+    tr
+        td !{indentation}#{name}
+        td #{description.type}
+        td #{schema.required && schema.required.indexOf(name) >= 0 ? 'true' : ''}
+        td #{description.description}
+        td
+            +Constraints(name, description)
+    each childDescription, childName in description.properties || []
+        +AttributesTable(schema, childName, childDescription, indentation + '&nbsp;&nbsp;&nbsp;')
+
 
 mixin Examples(resourceGroup, resource, action)
     each example in action.examples
